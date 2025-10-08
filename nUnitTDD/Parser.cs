@@ -13,14 +13,28 @@ namespace nUnitTDD
 
         public int Parse(ExcelFile excelFile)
         {
-            if (excelFile.Rows.Any(row => row is InvalidRow))
+            if (excelFile.Rows.Any(x => x is InvalidRow))
                 _alertPublisher.SendAlert();
+            
+            return excelFile.Rows.Count();
+        }
+
+        public int ParseWithCells(ExcelFile excelFile)
+        {
+            foreach (var row in excelFile.Rows)
+            {
+                if (!IsRowValid(row.Cells))
+                    _alertPublisher.SendAlert();
+            }
 
             return excelFile.Rows.Count();
         }
 
-        public static bool IsRowValid(List<Row> rows)
-        {
+        public static bool IsRowValid(List<Cell> cells)
+        {    
+            if (cells.Count() >= 3)
+                return true;
+
             return false;
         }
     }

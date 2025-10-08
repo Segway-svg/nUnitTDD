@@ -66,5 +66,43 @@ namespace nUnitTDD
 
             mockAlertPublisher.Verify(x => x.SendAlert(), Times.Never);
         }
+
+        [Test]
+        public void ParserSendAlert_For_RowWithLowerThanThreeCells()
+        {
+            var parsedCount = parser.ParseWithCells(CreateExcelFile(new List<Row>()
+            {
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                }),
+            }));
+
+            mockAlertPublisher.Verify(x => x.SendAlert(), Times.Once);
+        }
+
+        [Test]
+        public void ParserDoesNotSendAlert_For_RowsWithNoLowerThanThreeCells()
+        {
+            var parsedCount = parser.ParseWithCells(CreateExcelFile(new List<Row>()
+            {
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                    new Cell("2"),
+                }),
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                    new Cell("3"),
+                    new Cell("4"),
+                }),
+            }));
+
+            mockAlertPublisher.Verify(x => x.SendAlert(), Times.Never);
+        }
     }
 }
