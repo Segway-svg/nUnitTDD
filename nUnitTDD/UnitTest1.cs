@@ -1,11 +1,13 @@
 using Moq;
 using nUnitTDD.Excel;
+using nUnitTDD.MockObjects;
 
 namespace nUnitTDD
 {
     public class UnitTest1
     {
         public Mock<IAlertPublisher> mockAlertPublisher = new Mock<IAlertPublisher>();
+        public Mock<IExcelManager> mockExcelManager = new Mock<IExcelManager>();
         public Parser parser;
 
         private static ExcelFile CreateExcelFile(List<Row> rows)
@@ -17,7 +19,9 @@ namespace nUnitTDD
         public void Setup()
         {
             mockAlertPublisher.Reset();
-            parser = new Parser(mockAlertPublisher.Object);
+            mockExcelManager.Reset();
+
+            parser = new Parser(mockAlertPublisher.Object, mockExcelManager.Object);
         }
 
         [Test]
@@ -25,8 +29,8 @@ namespace nUnitTDD
         {
             var parsedCount = parser.Parse(CreateExcelFile(new List<Row>()
             {
-                new Row(new List<Cell>() { new Cell("1") }),
-                new Row(new List <Cell>() { new Cell("1") }),
+                new Row(),
+                new Row(),
             }));
 
             Assert.AreEqual(2, parsedCount);
@@ -37,9 +41,9 @@ namespace nUnitTDD
         {
             var parsedCount = parser.Parse(CreateExcelFile(new List<Row>()
             {
-                new Row(new List<Cell>()),
-                new Row(new List<Cell>()),
-                new Row(new List<Cell>()),
+                new Row(),
+                new Row(),
+                new Row(),
             }));
 
             Assert.AreEqual(3, parsedCount);
@@ -70,7 +74,7 @@ namespace nUnitTDD
         [Test]
         public void ParserSendAlert_For_RowWithLowerThanThreeCells()
         {
-            var parsedCount = parser.ParseWithCells(CreateExcelFile(new List<Row>()
+            parser.ParseWithCells(CreateExcelFile(new List<Row>()
             {
                 new Row(new List<Cell>()
                 {
@@ -85,7 +89,7 @@ namespace nUnitTDD
         [Test]
         public void ParserDoesNotSendAlert_For_RowsWithNoLowerThanThreeCells()
         {
-            var parsedCount = parser.ParseWithCells(CreateExcelFile(new List<Row>()
+            parser.ParseWithCells(CreateExcelFile(new List<Row>()
             {
                 new Row(new List<Cell>()
                 {
@@ -103,6 +107,56 @@ namespace nUnitTDD
             }));
 
             mockAlertPublisher.Verify(x => x.SendAlert(), Times.Never);
+        }
+
+        [Test]
+        public void IfRowsParsed_AttemptProcessed_SaveToStorage()
+        {
+            var excelFile = CreateExcelFile(new List<Row>()
+            {
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                    new Cell("2"),
+                }),
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                    new Cell("3"),
+                    new Cell("4"),
+                }),
+            });
+
+            mockExcelManager.Setup(x => x.Save(excelFile)).Returns(true);
+
+            var isParsed = parser.ParseWithCells(excelFile);
+
+            Assert.True(isParsed);
+        }
+
+        [Test]
+        public void IfRowsNotParsed_AttemptFailProcessed_DoNotSaveToStorage()
+        {
+            var excelFile = CreateExcelFile(new List<Row>()
+            {
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                }),
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                }),
+            });
+
+            mockExcelManager.Setup(x => x.Save(excelFile)).Returns(false);
+
+            var isParsed = parser.ParseWithCells(excelFile);
+
+            Assert.False(isParsed);
         }
     }
 }
