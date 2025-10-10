@@ -1,6 +1,7 @@
 using Moq;
 using nUnitTDD.Excel;
 using nUnitTDD.MockObjects;
+using nUnitTDD.ParseObjects;
 
 namespace nUnitTDD
 {
@@ -27,46 +28,55 @@ namespace nUnitTDD
         [Test]
         public void ParserReturnsTwoAsParsedRowsCount()
         {
-            var parsedCount = parser.Parse(CreateExcelFile(new List<Row>()
+            var excelFile = CreateExcelFile(new List<Row>()
             {
                 new Row(),
                 new Row(),
-            }));
+            });
 
-            Assert.AreEqual(2, parsedCount);
+            var parseResult = parser.Parse(excelFile);
+
+
+            Assert.That(parseResult.ParsedRowsCount, Is.EqualTo(2));
         }
 
         [Test]
         public void ParserReturnsThreeAsParsedRowsCount()
         {
-            var parsedCount = parser.Parse(CreateExcelFile(new List<Row>()
+            var excelFile = CreateExcelFile(new List<Row>()
             {
                 new Row(),
                 new Row(),
                 new Row(),
-            }));
+            });
 
-            Assert.AreEqual(3, parsedCount);
+            var parseResult = parser.Parse(excelFile);
+
+            Assert.That(parseResult.ParsedRowsCount, Is.EqualTo(3));
         }
 
         [Test]
-        public void ParserSendAlertForIneInvalidRow()
+        public void ParserSendAlertForInvalidRow()
         {
-            var parsedCount = parser.Parse(CreateExcelFile(new List<Row>()
+            var excelFile = CreateExcelFile(new List<Row>()
             {
                 new InvalidRow(),
-            }));
+            });
+
+            var parsedResult = parser.Parse(excelFile);
 
             mockAlertPublisher.Verify(x => x.SendAlert());
         }
 
         [Test]
-        public void ParserDoesNotSendAlertForIneInvalidRow()
+        public void ParserDoesNotSendAlertForNotInvalidRow()
         {
-            var parsedCount = parser.Parse(CreateExcelFile(new List<Row>()
+            var excelFile = CreateExcelFile(new List<Row>()
             {
                 new Row(new List<Cell>()),
-            }));
+            });
+
+            var parsedResult = parser.Parse(excelFile);
 
             mockAlertPublisher.Verify(x => x.SendAlert(), Times.Never);
         }
@@ -74,14 +84,16 @@ namespace nUnitTDD
         [Test]
         public void ParserSendAlert_For_RowWithLowerThanThreeCells()
         {
-            parser.ParseWithCells(CreateExcelFile(new List<Row>()
+            var excelFile = CreateExcelFile(new List<Row>()
             {
                 new Row(new List<Cell>()
                 {
                     new Cell("1"),
                     new Cell("2"),
                 }),
-            }));
+            });
+
+            var parsedResult = parser.Parse(excelFile, true);
 
             mockAlertPublisher.Verify(x => x.SendAlert(), Times.Once);
         }
@@ -89,7 +101,7 @@ namespace nUnitTDD
         [Test]
         public void ParserDoesNotSendAlert_For_RowsWithNoLowerThanThreeCells()
         {
-            parser.ParseWithCells(CreateExcelFile(new List<Row>()
+            var excelFile = CreateExcelFile(new List<Row>()
             {
                 new Row(new List<Cell>()
                 {
@@ -104,7 +116,9 @@ namespace nUnitTDD
                     new Cell("3"),
                     new Cell("4"),
                 }),
-            }));
+            });
+
+            var parsedResult = parser.Parse(excelFile);
 
             mockAlertPublisher.Verify(x => x.SendAlert(), Times.Never);
         }
@@ -131,9 +145,10 @@ namespace nUnitTDD
 
             mockExcelManager.Setup(x => x.Save(excelFile)).Returns(true);
 
-            var isParsed = parser.ParseWithCells(excelFile);
+            var parseResult = parser.Parse(excelFile, true);
 
-            Assert.True(isParsed);
+            Assert.True(parseResult.IfFileParsed);
+            Assert.True(parseResult.WasSavedToStorage);
         }
 
         [Test]
@@ -154,9 +169,10 @@ namespace nUnitTDD
 
             mockExcelManager.Setup(x => x.Save(excelFile)).Returns(false);
 
-            var isParsed = parser.ParseWithCells(excelFile);
+            var parseResult = parser.Parse(excelFile, true);
 
-            Assert.False(isParsed);
+            Assert.False(parseResult.IfFileParsed);
+            Assert.False(parseResult.WasSavedToStorage);
         }
     }
 }
