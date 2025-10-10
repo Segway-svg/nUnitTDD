@@ -1,9 +1,9 @@
-﻿using nUnitTDD.Excel;
+﻿using nUnitTDD.Excel.Files;
 
 namespace nUnitTDD.MockObjects
 {
     public interface IExcelManager
     {
-        public bool Save(ExcelFile excelFile);
+        public bool Save(IFile excelFile);
     }
 }

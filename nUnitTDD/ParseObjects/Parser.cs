@@ -1,4 +1,5 @@
-﻿using nUnitTDD.Excel;
+﻿using nUnitTDD.Excel.Files;
+using nUnitTDD.Excel.FileStructure;
 using nUnitTDD.MockObjects;
 
 namespace nUnitTDD.ParseObjects
@@ -14,27 +15,28 @@ namespace nUnitTDD.ParseObjects
             _excelManager = excelManager;
         }
 
-        public ParseResult Parse(ExcelFile excelFile, bool IsCheckCells = false)
+        public ParseResult Parse(IFile file, bool IsCheckCells = false)
         {
             var parseResult = new ParseResult();
 
-            parseResult.ParsedRowsCount = excelFile.Rows.Count();
+            parseResult.ParsedRowsCount = file.Rows.Count();
             parseResult.IfFileParsed = true;
 
-            if (excelFile.Rows.Any(x => x is InvalidRow))
+            if (file.Rows.Any(x => x is InvalidRow))
             {
                 _alertPublisher.SendAlert();
 
                 parseResult.HasInvalidRows = true;
-                parseResult.ParsedRowsCount = excelFile.Rows.Where(x => x is not InvalidRow).Count();
+                parseResult.ParsedRowsCount = file.Rows.Where(x => x is not InvalidRow).Count();
             }
 
             if (IsCheckCells)
             {
-                foreach (var row in excelFile.Rows)
+                foreach (var row in file.Rows)
                 {
                     if (!IsRowValid(row.Cells))
                     {
+                        row.IsValid = false;
                         _alertPublisher.SendAlert();
                         parseResult.HasInvalidCells = true;
                     }
@@ -43,7 +45,7 @@ namespace nUnitTDD.ParseObjects
 
             if (!parseResult.HasInvalidRows && !parseResult.HasInvalidCells)
             {
-                _excelManager.Save(excelFile);
+                _excelManager.Save(file);
                 parseResult.WasSavedToStorage = true;
             }
             else
@@ -52,6 +54,28 @@ namespace nUnitTDD.ParseObjects
             }
 
             return parseResult;
+        }
+
+        public bool CompareCsvAndExcel(CsvFile csvFile, ExcelFile excelFile)
+        {
+            foreach (var csvRow in csvFile.Rows)
+            {
+                //if (!csvRow.IsValid || csvRow is InvalidRow)
+                //    continue;
+
+                foreach (var excelRow in excelFile.Rows)
+                {
+                    //if (!excelRow.IsValid || excelRow is InvalidRow)
+                    //    continue;
+
+                    if (csvRow.Cells.Count() - 1 != excelRow.Cells.Count())
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         public bool SaveToStorage(ExcelFile excelFile)

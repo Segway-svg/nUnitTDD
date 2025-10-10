@@ -1,4 +1,4 @@
-﻿namespace nUnitTDD.Excel
+﻿namespace nUnitTDD.Excel.FileStructure
 {
     public class Cell
     {

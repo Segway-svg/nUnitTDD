@@ -1,5 +1,6 @@
 using Moq;
-using nUnitTDD.Excel;
+using nUnitTDD.Excel.Files;
+using nUnitTDD.Excel.FileStructure;
 using nUnitTDD.MockObjects;
 using nUnitTDD.ParseObjects;
 
@@ -14,6 +15,11 @@ namespace nUnitTDD
         private static ExcelFile CreateExcelFile(List<Row> rows)
         {
             return new ExcelFile(rows);
+        }
+
+        private static CsvFile CreateCsvFile(List<Row> rows)
+        {
+            return new CsvFile(rows);
         }
 
         [SetUp]
@@ -173,6 +179,47 @@ namespace nUnitTDD
 
             Assert.False(parseResult.IfFileParsed);
             Assert.False(parseResult.WasSavedToStorage);
+        }
+
+        [Test]
+        public void IsCsvHasOneMoreCellThanExcelFileInRows()
+        {
+            var excelFile = CreateExcelFile(new List<Row>()
+            {
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                }),
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                }),
+            });
+
+            var csvFile = CreateCsvFile(new List<Row>()
+            {
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                    new Cell("3"),
+                }),
+                new Row(new List<Cell>()
+                {
+                    new Cell("1"),
+                    new Cell("2"),
+                    new Cell("3"),
+                }),
+            });
+
+            mockExcelManager.Setup(x => x.Save(excelFile)).Returns(true);
+
+            var parseResult = parser.Parse(excelFile, true);
+
+            Assert.True(parser.CompareCsvAndExcel(csvFile, excelFile));
+
         }
     }
 }
