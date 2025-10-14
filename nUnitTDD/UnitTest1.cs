@@ -145,7 +145,6 @@ namespace nUnitTDD
                     new Cell("1"),
                     new Cell("2"),
                     new Cell("3"),
-                    new Cell("4"),
                 }),
             });
 
@@ -184,20 +183,6 @@ namespace nUnitTDD
         [Test]
         public void IsCsvHasOneMoreCellThanExcelFileInRows()
         {
-            var excelFile = CreateExcelFile(new List<Row>()
-            {
-                new Row(new List<Cell>()
-                {
-                    new Cell("1"),
-                    new Cell("2"),
-                }),
-                new Row(new List<Cell>()
-                {
-                    new Cell("1"),
-                    new Cell("2"),
-                }),
-            });
-
             var csvFile = CreateCsvFile(new List<Row>()
             {
                 new Row(new List<Cell>()
@@ -205,21 +190,22 @@ namespace nUnitTDD
                     new Cell("1"),
                     new Cell("2"),
                     new Cell("3"),
+                    new Cell("4"),
                 }),
                 new Row(new List<Cell>()
                 {
                     new Cell("1"),
                     new Cell("2"),
                     new Cell("3"),
+                    new Cell("4"),
                 }),
             });
 
-            mockExcelManager.Setup(x => x.Save(excelFile)).Returns(true);
+            mockExcelManager.Setup(x => x.Save(csvFile)).Returns(true);
 
-            var parseResult = parser.Parse(excelFile, true);
+            var csvParseResult = parser.Parse(csvFile, true);
 
-            Assert.True(parser.CompareCsvAndExcel(csvFile, excelFile));
-
+            Assert.That(csvParseResult.ParsedRowsCount, Is.EqualTo(2));
         }
     }
 }

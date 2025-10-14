@@ -10,5 +10,10 @@ namespace nUnitTDD.Excel.Files
         {
             Rows = rows;
         }
+
+        public bool IsRowValid(Row row)
+        {
+            return row.Cells.Count() == 3;
+        }
     }
 }

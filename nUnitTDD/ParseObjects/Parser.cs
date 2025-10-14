@@ -34,7 +34,7 @@ namespace nUnitTDD.ParseObjects
             {
                 foreach (var row in file.Rows)
                 {
-                    if (!IsRowValid(row.Cells))
+                    if (!file.IsRowValid(row))
                     {
                         row.IsValid = false;
                         _alertPublisher.SendAlert();
@@ -54,38 +54,6 @@ namespace nUnitTDD.ParseObjects
             }
 
             return parseResult;
-        }
-
-        public bool CompareCsvAndExcel(CsvFile csvFile, ExcelFile excelFile)
-        {
-            foreach (var csvRow in csvFile.Rows)
-            {
-                //if (!csvRow.IsValid || csvRow is InvalidRow)
-                //    continue;
-
-                foreach (var excelRow in excelFile.Rows)
-                {
-                    //if (!excelRow.IsValid || excelRow is InvalidRow)
-                    //    continue;
-
-                    if (csvRow.Cells.Count() - 1 != excelRow.Cells.Count())
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        public bool SaveToStorage(ExcelFile excelFile)
-        {
-            return _excelManager.Save(excelFile);
-        }
-
-        public static bool IsRowValid(List<Cell> cells)
-        {
-            return cells.Count() >= 3;
         }
     }
 }

@@ -5,5 +5,6 @@ namespace nUnitTDD.Excel.Files
     public interface IFile
     {
         List<Row> Rows { get; }
+        public bool IsRowValid(Row row); 
     }
 }
