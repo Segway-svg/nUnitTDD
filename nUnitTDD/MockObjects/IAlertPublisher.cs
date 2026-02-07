@@ -1,4 +1,4 @@
-﻿namespace nUnitTDD
+﻿namespace nUnitTDD.MockObjects
 {
     public interface IAlertPublisher
     {
